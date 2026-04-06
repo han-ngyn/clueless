@@ -1,0 +1,5 @@
+temp_min,temp_max,top_length,bottom_length,needs_coat
+75,200,short,short,no
+65,74,short,long,no
+55,64,long,long,no
+0,54,long,long,yes
