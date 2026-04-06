@@ -91,14 +91,15 @@ def pick_outfit(wardrobe, weather_rule, mood_colors):
  
 def display_outfit(outfit, temperature, mood):
     """Print the final outfit recommendation."""
-    print(f"\n🌡️  It's {temperature}°F outside and you're feeling {mood}.\n")
+    print(f"\nIt's {temperature}°F outside and you're feeling {mood}.\n")
     print("Here's your outfit:\n")
-    print(f"  👕 Top:    {outfit['top']['name']} ({outfit['top']['color']})"       if outfit["top"]    else "  👕 Top:    (nothing found!)")
-    print(f"  👖 Bottom: {outfit['bottom']['name']} ({outfit['bottom']['color']})" if outfit["bottom"] else "  👖 Bottom: (nothing found!)")
+    print(f"Top:    {outfit['top']['name']} ({outfit['top']['color']})"       if outfit["top"]    else "Top:    (nothing found!)")
+    print(f"Bottom: {outfit['bottom']['name']} ({outfit['bottom']['color']})" if outfit["bottom"] else "Bottom: (nothing found!)")
     if outfit["coat"]:
-        print(f"  🧥 Coat:   {outfit['coat']['name']} ({outfit['coat']['color']})")
+        print(f"Coat:   {outfit['coat']['name']} ({outfit['coat']['color']})")
     else:
-        print(f"  🧥 Coat:   none — enjoy the weather!")
+        print(f"Coat:   none!")
+        print("Great outfit! Looking fetch!")
     print()
  
  
@@ -109,26 +110,24 @@ def main():
     wardrobe      = load_csv("wardrobe.csv")
     weather_rules = load_csv("weather.csv")
     mood_data     = load_csv("mood_colors.csv")
- 
-    # Get user input
+
+    # Get and validate temperature immediately
     temp_input = input("What's the temperature outside? (°F): ")
     temperature = float(temp_input)
- 
-    print("What's your mood? (happy, calm, serious, romantic): ", end="")
-    mood = input().strip()
- 
-    # Look up the weather rule for this temperature
+
     weather_rule = get_weather_rule(weather_rules, temperature)
     if not weather_rule:
-        print(f"No weather rule found for {temperature}°F. Please update weather.csv!")
+        print(f"No weather rule found for {temperature}°F. Try any temperature from 0-200 °F!")
         return
- 
-    # Get colors for this mood
+
+    # Get and validate mood immediately
+    mood = input("What's your mood? (happy, calm, serious, romantic): ").strip()
+
     mood_colors = get_mood_colors(mood_data, mood)
     if not mood_colors:
-        print(f"No colors found for mood '{mood}'. Please update mood_colors.csv!")
+        print(f"No colors found for mood '{mood}'. Try: happy, calm, serious, or romantic.")
         return
- 
+
     # Pick and display the outfit
     outfit = pick_outfit(wardrobe, weather_rule, mood_colors)
     display_outfit(outfit, temperature, mood)
