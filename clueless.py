@@ -146,8 +146,20 @@ def pick_outfit(wardrobe, weather_rule, mood_colors):
     if needs_coat:
         coats = filter_wardrobe(wardrobe, "coat", "long", mood_colors)
         coat  = random.choice(coats) if coats else None
- 
-    return {"top": top, "bottom": bottom, "coat": coat}
+
+    shoes = filter_wardrobe(wardrobe, "shoes", bottom_length, mood_colors)
+    accessories = filter_wardrobe(wardrobe, "accessory", top_length, mood_colors)
+
+    shoe = random.choice(shoes) if shoes else None
+    accessory = random.choice(accessories) if accessories else None 
+
+    return {
+        "top": top, 
+        "bottom": bottom, 
+        "coat": coat,
+        "shoes": shoe,
+        "accessory": accessory
+        }
  
  
 # what is printed for the user 
@@ -156,13 +168,18 @@ def display_outfit(outfit, temperature, mood):
     """Print the final outfit recommendation."""
     print(f"\nIt's {temperature}°F outside and you're feeling {mood}.\n")
     print("Here's your outfit:\n")
-    print(f"Top:    {outfit['top']['name']} ({outfit['top']['color']})"       if outfit["top"]    else "Top:    (nothing found!)")
-    print(f"Bottom: {outfit['bottom']['name']} ({outfit['bottom']['color']})" if outfit["bottom"] else "Bottom: (nothing found!)")
+
+    print(f"Top: {outfit['top']['name']} ({outfit['top']['color']})" if outfit["top"] else "Top:       (nothing found!)")
+    print(f"Bottom: {outfit['bottom']['name']} ({outfit['bottom']['color']})" if outfit["bottom"] else "Bottom:    (nothing found!)")
+    print(f"Shoes: {outfit['shoes']['name']} ({outfit['shoes']['color']})" if outfit["shoes"] else "Shoes:     (nothing found!)")
+    print(f"Accessory: {outfit['accessory']['name']} ({outfit['accessory']['color']})" if outfit["accessory"] else "Accessory: none!")
+
     if outfit["coat"]:
-        print(f"Coat:   {outfit['coat']['name']} ({outfit['coat']['color']})")
+        print(f"Coat:      {outfit['coat']['name']} ({outfit['coat']['color']})")
     else:
-        print(f"Coat:   none!")
-        print("Great outfit! Looking fetch!")
+        print("Coat:      none!")
+
+    print("Great outfit! Looking fetch!")
     print()
  
  
