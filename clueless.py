@@ -5,7 +5,17 @@ import random
 # ── CSV Loaders ─────────────────────────────────────────────────────────────
  
 def load_csv(filepath):
-    """Generic CSV loader — returns a list of dicts, strips whitespace from all values."""
+    """
+    Open a CSV file and turn each row into a dictionary.
+
+    Example:
+    If a CSV has columns like "name,color,category",
+    each row becomes something like:
+    {"name": "Blue Shirt", "color": "blue", "category": "top"}
+
+    We also strip extra spaces from both the column names
+    and the values so the data stays clean.
+    """
     with open(filepath, newline="") as f:
         reader = csv.DictReader(f)
         return [
@@ -18,8 +28,18 @@ def load_csv(filepath):
  
 def get_weather_rule(weather_rules, temperature):
     """
-    Given a temperature, find the matching row in weather.csv and return it.
-    Returns a dict with top_length, bottom_length, needs_coat.
+    Given a temperature, find the matching row in weather.csv.
+
+    Each weather rule has a minimum and maximum temperature range.
+    For example, one row might say:
+    60 to 75 degrees = short sleeves + shorts + no coat
+
+    This function loops through every rule and returns the first one
+    whose temperature range includes the user's temperature.
+
+    Returns:
+        A dictionary containing the matching rule
+        OR None if no rule matches
     """
     for rule in weather_rules:
         if int(rule["temp_min"]) <= temperature <= int(rule["temp_max"]):
@@ -30,7 +50,19 @@ def get_weather_rule(weather_rules, temperature):
 # ── Mood Color Lookup ────────────────────────────────────────────────────────
  
 def get_mood_colors(mood_data, mood):
-    """Return a list of colors associated with the given mood."""
+    """
+    Return a list of colors that match the user's mood.
+
+    Example:
+    If the user says "happy", this function might return:
+    ["yellow", "pink", "orange"]
+
+    It searches through mood_colors.csv and collects all colors
+    connected to that mood.
+
+    The .lower() calls make the comparison case insensitive,
+    so "Happy" and "happy" both work.
+    """
     return [
         row["color"]
         for row in mood_data
@@ -42,9 +74,23 @@ def get_mood_colors(mood_data, mood):
  
 def filter_wardrobe(wardrobe, category, length, mood_colors):
     """
-    Filter wardrobe items by category and length.
-    If any items match the mood colors, return only those.
-    Otherwise fall back to all length-matching items (so outfit is never empty).
+    Filter wardrobe items by category and clothing length.
+
+    Parameters:
+        wardrobe: list of all clothing items from wardrobe.csv
+        category: the type of clothing we want ("top", "bottom", or "coat")
+        length: the clothing length we want ("short", "long", etc.)
+        mood_colors: list of colors connected to the user's mood
+
+    How it works:
+    1. First, find all items in the correct category and length.
+       Example: all tops that are short
+    2. Then, among those, look for items whose color matches the user's mood.
+    3. If mood matching items exist, return only those.
+    4. If not, return all items that matched the category and length.
+
+    This fallback is important because it prevents the outfit from being empty
+    just because no item matched the mood color.
     """
     # First filter by category and length
     length_matches = [
@@ -66,8 +112,25 @@ def filter_wardrobe(wardrobe, category, length, mood_colors):
  
 def pick_outfit(wardrobe, weather_rule, mood_colors):
     """
-    Build an outfit dict with a top, bottom, and coat (if needed).
-    Uses weather rule for lengths and mood colors for color preference.
+    Build a full outfit using:
+    - the weather rule for clothing length
+    - the mood colors for color preference
+
+    The outfit includes:
+    - one top
+    - one bottom
+    - one coat if the weather rule says a coat is needed
+
+    random.choice() is used so the program picks one random item
+    from the matching options instead of always choosing the first one.
+
+    Returns:
+        A dictionary like:
+        {
+            "top": {...},
+            "bottom": {...},
+            "coat": {...} or None
+        }
     """
     top_length    = weather_rule["top_length"]
     bottom_length = weather_rule["bottom_length"]
@@ -87,7 +150,7 @@ def pick_outfit(wardrobe, weather_rule, mood_colors):
     return {"top": top, "bottom": bottom, "coat": coat}
  
  
-# ── Display ──────────────────────────────────────────────────────────────────
+# what is printed for the user 
  
 def display_outfit(outfit, temperature, mood):
     """Print the final outfit recommendation."""
@@ -103,7 +166,7 @@ def display_outfit(outfit, temperature, mood):
     print()
  
  
-# ── Main ─────────────────────────────────────────────────────────────────────
+# main function
  
 def main():
     # Load all three CSVs
