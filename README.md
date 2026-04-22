@@ -9,3 +9,11 @@ To incorporate the weather component, we will draw from weather app data and set
 
 Finally, we will give the user a degree of choice and provide 3 potential outfits for the user to choose from.
 
+At this point in time, we rely on the user determining the primary color of a given article of clothing. With this being the case, the instructions for a user are as follows.  
+User Instruction:
+Create a wardrobe csv file that includes necessary information about your wardrobe items. 
+Be sure to follow the sample structure of item name, category, length, and color. 
+From here, your clueless.py file will be able to access your wardrobe information and create the perfect weather matched, mood matched outfits for you. 
+Feel free to edit or add to the provided mood_colors csv file if there are certain colors that resonate to different moods than previously indicated. This will allow for further personalization of your personal outfit picker!
+
+Lastly, our python has now successfully incorporated connection to a local weather API so inputting the temperature is no longer necessary. Our code extracts the highest and lowest projected temperature of the day and takes the average of these numbers to ensure your outfit has you covered for the entire day. 
