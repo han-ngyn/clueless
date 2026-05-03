@@ -1,20 +1,54 @@
 name,category,length,color
+
 blue t shirt,top,short,blue
 white long sleeve,top,long,white
 black tank,top,short,black
 gray sweater,top,long,gray
+red blouse,top,short,red
+yellow tube top,top,short,yellow
+green hoodie,top,long,green
+navy polo,top,short,navy
+orange sweatshirt,top,long,orange
+purple crop top,top,short,purple
+striped t shirt,top,short,multicolor
+flannel shirt,top,long,red
+
 black shorts,bottom,short,black
 blue jeans,bottom,long,blue
 white skirt,bottom,short,white
 brown trousers,bottom,long,brown
+khaki shorts,bottom,short,khaki
+black joggers,bottom,long,black
+gray sweatpants,bottom,long,gray
+ripped jeans,bottom,long,blue
+cargo pants,bottom,long,green
+denim skirt,bottom,short,blue
+athletic shorts,bottom,short,black
+
 black coat,coat,long,black
 beige jacket,coat,short,beige
-red blouse,top,short,red
 pink coat,coat,long,pink
-yellow tube top,top,short,yellow
+denim jacket,coat,short,blue
+puffer jacket,coat,long,black
+trench coat,coat,long,beige
+windbreaker,coat,short,green
+
 white sneakers,shoes,short,white
 black boots,shoes,long,black
 brown loafers,shoes,long,brown
+running shoes,shoes,short,gray
+sandals,shoes,short,brown
+high top sneakers,shoes,long,white
+dress shoes,shoes,long,black
+slides,shoes,short,black
+
 gold necklace,accessory,short,gold
 blue scarf,accessory,long,blue
 black hat,accessory,short,black
+silver watch,accessory,short,silver
+leather belt,accessory,short,brown
+sunglasses,accessory,short,black
+beanie,accessory,long,gray
+backpack,accessory,long,black
+bracelet,accessory,short,gold
+earrings,accessory,short,silver
