@@ -1,22 +1,10 @@
 import csv
 import random
+import requests
  
  
-# ── CSV Loaders ─────────────────────────────────────────────────────────────
- 
-def load_csv(filepath):
-    """
-    Open a CSV file and turn each row into a dictionary.
-
-    Example:
-    If a CSV has columns like "name,color,category",
-    each row becomes something like:
-    {"name": "Blue Shirt", "color": "blue", "category": "top"}
-
-    We also strip extra spaces from both the column names
-    and the values so the data stays clean.
-    """
-    with open(filepath, newline="") as f:
+def load_csv(filepath): #csv loader. strip values of whitespace and allows us to access/load the different csv files  
+    with open(filepath, newline="") as f: #file is opened to access csv files. newline = "" allows for proper recognition of ending lines
         reader = csv.DictReader(f)
         return [
             {key.strip(): value.strip() for key, value in row.items()}
@@ -24,127 +12,72 @@ def load_csv(filepath):
         ]
  
  
-# ── Weather Rule Lookup ──────────────────────────────────────────────────────
+def get_todays_temperature(latitude=42.3876, longitude=-71.0995): #fetches today's high and low from Open-Meteo and returns the average
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "daily": ["temperature_2m_max", "temperature_2m_min"],
+        "temperature_unit": "fahrenheit",
+        "forecast_days": 1,
+        "timezone": "America/New_York"
+    }
+    response = requests.get(url, params=params)
+    response.raise_for_status() #raises an error if the request fails
+    data = response.json()
  
-def get_weather_rule(weather_rules, temperature):
-    """
-    Given a temperature, find the matching row in weather.csv.
-
-    Each weather rule has a minimum and maximum temperature range.
-    For example, one row might say:
-    60 to 75 degrees = short sleeves + shorts + no coat
-
-    This function loops through every rule and returns the first one
-    whose temperature range includes the user's temperature.
-
-    Returns:
-        A dictionary containing the matching rule
-        OR None if no rule matches
-    """
+    high = data["daily"]["temperature_2m_max"][0]
+    low  = data["daily"]["temperature_2m_min"][0]
+    avg  = (high + low) / 2
+ 
+    print(f"Today's forecast — High: {high}°F  Low: {low}°F  Average: {avg:.1f}°F")
+    return avg
+ 
+ 
+def get_weather_rule(weather_rules, temperature): #weather rules include max and minimum temperature values. 
     for rule in weather_rules:
-        if int(rule["temp_min"]) <= temperature <= int(rule["temp_max"]):
+        if int(rule["temp_min"]) <= temperature <= int(rule["temp_max"]): #does the temp fall in the defined range?
             return rule
-    return None  # no matching rule found
+    return None  #if no rule is found the function returns None
  
  
-# ── Mood Color Lookup ────────────────────────────────────────────────────────
- 
-def get_mood_colors(mood_data, mood):
-    """
-    Return a list of colors that match the user's mood.
-
-    Example:
-    If the user says "happy", this function might return:
-    ["yellow", "pink", "orange"]
-
-    It searches through mood_colors.csv and collects all colors
-    connected to that mood.
-
-    The .lower() calls make the comparison case insensitive,
-    so "Happy" and "happy" both work.
-    """
+def get_mood_colors(mood_data, mood): #key that associates mood to color
     return [
-        row["color"]
+        row["color"] #extracts the associated color for the given mood
         for row in mood_data
-        if row["mood"].lower() == mood.lower()
+        if row["mood"].lower() == mood.lower() #standardize no capitalization (CALM, Calm, calm all work)
     ]
  
  
-# ── Wardrobe Filtering ───────────────────────────────────────────────────────
- 
-def filter_wardrobe(wardrobe, category, length, mood_colors):
-    """
-    Filter wardrobe items by category and clothing length.
-
-    Parameters:
-        wardrobe: list of all clothing items from wardrobe.csv
-        category: the type of clothing we want ("top", "bottom", or "coat")
-        length: the clothing length we want ("short", "long", etc.)
-        mood_colors: list of colors connected to the user's mood
-
-    How it works:
-    1. First, find all items in the correct category and length.
-       Example: all tops that are short
-    2. Then, among those, look for items whose color matches the user's mood.
-    3. If mood matching items exist, return only those.
-    4. If not, return all items that matched the category and length.
-
-    This fallback is important because it prevents the outfit from being empty
-    just because no item matched the mood color.
-    """
-    # First filter by category and length
-    length_matches = [
+def filter_wardrobe(wardrobe, category, length, mood_colors): #there are more parameters to filter through here (category, length, color)
+    length_matches = [ #we need to find what articles of clothing are eligible based on length and type first
         item for item in wardrobe
-        if item["category"] == category and item["length"] == length
+        if item["category"] == category and item["length"] == length #will shorten our list and specify category + length = eligible
     ]
- 
-    # Then try to narrow down by mood color
-    color_matches = [
+    color_matches = [ #now we bring in the color parameter and further narrow down our results
         item for item in length_matches
-        if item["color"].lower() in [c.lower() for c in mood_colors]
+        if item["color"].lower() in [c.lower() for c in mood_colors] #lowercase standardization. filters length_matches for eligible color(s)
     ]
+    return color_matches if color_matches else length_matches #return a color matched, length matched item. 
+    #                                                          if there are no items in length_matched that are
+    #                                                          the desired color, return a length matched item. 
  
-    # Prefer mood-color matches, but fall back to any length match
-    return color_matches if color_matches else length_matches
  
+def pick_outfit(wardrobe, weather_rule, mood_colors): #this function builds our outfit!
  
-# ── Outfit Picker ────────────────────────────────────────────────────────────
+    top_length    = weather_rule["top_length"] #determine what sleeve length for top based on weather
+    bottom_length = weather_rule["bottom_length"] #determine what pant length for bottom based on weather
+    needs_coat    = weather_rule["needs_coat"].lower() == "yes" #string yes/no --> boolean
  
-def pick_outfit(wardrobe, weather_rule, mood_colors):
-    """
-    Build a full outfit using:
-    - the weather rule for clothing length
-    - the mood colors for color preference
-
-    The outfit includes:
-    - one top
-    - one bottom
-    - one coat if the weather rule says a coat is needed
-
-    random.choice() is used so the program picks one random item
-    from the matching options instead of always choosing the first one.
-
-    Returns:
-        A dictionary like:
-        {
-            "top": {...},
-            "bottom": {...},
-            "coat": {...} or None
-        }
-    """
-    top_length    = weather_rule["top_length"]
-    bottom_length = weather_rule["bottom_length"]
-    needs_coat    = weather_rule["needs_coat"].lower() == "yes"
+    tops    = filter_wardrobe(wardrobe, "top",    top_length,    mood_colors) #call filter_wardrobe for TOPS
+    bottoms = filter_wardrobe(wardrobe, "bottom", bottom_length, mood_colors) #call filter_wardrobe for BOTTOMS
  
-    tops    = filter_wardrobe(wardrobe, "top",    top_length,    mood_colors)
-    bottoms = filter_wardrobe(wardrobe, "bottom", bottom_length, mood_colors)
- 
-    top    = random.choice(tops)    if tops    else None
+    top    = random.choice(tops)    if tops    else None #from list of eligible items, randomly pick one
     bottom = random.choice(bottoms) if bottoms else None
  
-    coat = None
-    if needs_coat:
-        coats = filter_wardrobe(wardrobe, "coat", "long", mood_colors)
+    coat = None #default is no coat. 
+    if needs_coat: #coat will only be assigned if needs_coat = True
+        coats = filter_wardrobe(wardrobe, "coat", "long", mood_colors) #all coats are long, but filter for color
         coat  = random.choice(coats) if coats else None
 
     shoes = filter_wardrobe(wardrobe, "shoes", bottom_length, mood_colors)
@@ -160,9 +93,8 @@ def pick_outfit(wardrobe, weather_rule, mood_colors):
         "shoes": shoe,
         "accessory": accessory
         }
+
  
- 
-# what is printed for the user 
  
 def display_outfit(outfit, temperature, mood):
     """Print the final outfit recommendation."""
@@ -183,35 +115,38 @@ def display_outfit(outfit, temperature, mood):
     print()
  
  
-# main function
- 
 def main():
-    # Load all three CSVs
+    #load csv files
     wardrobe      = load_csv("wardrobe.csv")
     weather_rules = load_csv("weather.csv")
     mood_data     = load_csv("mood_colors.csv")
-
-    # Get and validate temperature immediately
-    temp_input = input("What's the temperature outside? (°F): ")
-    temperature = float(temp_input)
-
+ 
+    #fetch today's average temperature automatically from Open-Meteo
+    try:
+        temperature = get_todays_temperature()
+    except Exception as e:
+        print(f"Could not fetch weather data: {e}")
+        temp_input = input("Enter temperature manually (°F): ")
+        temperature = float(temp_input)
+ 
     weather_rule = get_weather_rule(weather_rules, temperature)
     if not weather_rule:
-        print(f"No weather rule found for {temperature}°F. Try any temperature from 0-200 °F!")
-        return
-
-    # Get and validate mood immediately
+        print(f"No weather rule found for {temperature:.1f}°F. Try any temperature from 0-200°F!")
+        return #if the inputted weather is outside the given range or doesn't match a rule, user is prompted to input a valid temp
+ 
+    #takes user inputted mood and strips it of any extra white space
     mood = input("What's your mood? (happy, calm, serious, romantic): ").strip()
-
+ 
     mood_colors = get_mood_colors(mood_data, mood)
     if not mood_colors:
         print(f"No colors found for mood '{mood}'. Try: happy, calm, serious, or romantic.")
-        return
-
-    # Pick and display the outfit
+        return #if user inputted mood does not match mood options, user is prompted to input a valid mood.  
+ 
+    #building + displaying outfit 
     outfit = pick_outfit(wardrobe, weather_rule, mood_colors)
     display_outfit(outfit, temperature, mood)
  
  
 if __name__ == "__main__":
     main()
+ 
